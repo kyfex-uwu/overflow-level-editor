@@ -121,7 +121,7 @@
           document.getElementById("output").textContent=
             entities.filter(e=>e.w!=0&&e.h!=0).map(e=>e.toCode()).join("\n")+
             `\n\nTiles({\n${
-            Object.entries(charPalette).map(entry=>`    ["${entry[1]}"]: (${
+            Object.entries(charPalette).map(entry=>`    "${entry[1]}": (${
               entry[0].split(":")[1]},"${entry[0].split(":")[0]}")`).join(",\n")+"\n"
           }},"""\n${tileMap}""").init(test_level)`;
         }
