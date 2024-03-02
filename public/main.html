@@ -45,7 +45,6 @@
             this.w=w;
             this.h=h;
           }
-          static get(x,y){ return new Entity(x, y, 0, 0); }
           finalize(){
             if(currEntity.w<0){
               currEntity.x+=currEntity.w;
@@ -92,6 +91,25 @@
           }
           toCode(){ return `SpawnPointEntity(${this.x},${this.y},${this.w},${this.h
             },(${this.spawnpoint[0]},${this.spawnpoint[1]})).init(test_level)`; }
+        }
+        class NonResizableEntity extends Entity{
+          constructor(x,y, w, h){
+            super(x,y,w, h);
+          }
+          get w(){ return this.w; }
+          get h(){ return this.h; }
+          set w(_){}
+          set h(_){}
+        }
+        class SpikeEntity extends NonResizableEntity{
+          constructor(x,y){
+            super(x,y,8,8);
+            this.dir="down";
+          }
+          static get(x,y){ return new SpikeEntity(x, y); }
+          render(){
+            image(SpikeEntity.img, this.x*SCALE+OFFSET[0],this.y*SCALE+OFFSET[1]);
+          }
         }
 
         const entities=[];
@@ -177,7 +195,8 @@
           }
 
           document.getElementById("output").textContent=
-            `test_level = Level(${Math.max(Math.max.apply(null,tiles.map(r=>r?r.length:0)),0)},${tiles.length})\n\n`+
+            `test_level = Level(${Math.max(Math.max.apply(null,tiles.map(r=>r?r.length:0)),0)},${tiles.length})\n`+
+            `PlayerEntity().init(test_level)\n\n`+
             entities.filter(e=>e.w!=0&&e.h!=0).map(e=>e.toCode()).join("\n")+
             `\n\nTiles({\n${
             Object.entries(charPalette).map(entry=>`    "${entry[1]}": (${
@@ -220,7 +239,9 @@
         function preload() {
           addPalette("test");
           addPalette("test2");
-          addPalette("blueTiles")
+          addPalette("blueTiles");
+
+          SpikeEntity.img = loadImage("/spikes.png");
         }
 
         const tiles=[];
