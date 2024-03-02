@@ -18,13 +18,25 @@
   <body style="background-color:black; display:flex;">
     <div>
       <button onclick="exportCode()">Export</button>
-      <div id="tileList"></div>
+      <div id="tileList"><span style="
+          width: 32px;
+          height: 32px;
+          cursor:pointer;
+          margin:5px;
+          background-color:white;
+          color:black;
+          float:left;
+          text-align:center;
+          font-family: sans-serif;
+          font-size: 30px;" id="entity-button">E</span></div>
       <div id="currTiles" style="width:calc((5 * 2px + 32px) * 8)"></div>
       <input type="color" id="background-color" value="#555555" /><br>
       <pre id="output" style="background-color:white; color:black; font-family:monospace;"></pre>
     </div>
 
     <script>
+        let SCALE=4;
+
         class Entity{
           constructor(x,y,w,h){
             this.x=x;
@@ -33,7 +45,7 @@
             this.h=h;
           }
           render(){
-            rect(this.x,this.y,this.w,this.h);
+            rect(this.x*SCALE,this.y*SCALE,this.w*SCALE,this.h*SCALE);
           }
 
           toCode(){ return ""; }
@@ -51,12 +63,15 @@
         }
 
         const entities=[];
-        /*
         let currEntity;
         function mousePressed(){
-          currEntity = new GroundEntity(mouseX, mouseY);
+          if(currPalette) return;
+
+          currEntity = new GroundEntity(Math.floor(mouseX/4), Math.floor(mouseY/4));
         }
         function mouseReleased(){
+          if(currPalette) return;
+
           if(currEntity.w<0){
             currEntity.x+=currEntity.w;
             currEntity.w*=-1;
@@ -68,10 +83,14 @@
           entities.push(currEntity);
           currEntity=undefined;
         }
-        */
+
+        document.getElementById("entity-button").addEventListener("click",()=>{
+          currPalette=undefined;
+        })
+
+        //--
 
         function exportCode(){
-          console.log(entities.filter(e=>e.w!=0&&e.h!=0).map(e=>e.toCode()).join("\n"));
 
           for(let i=tiles.length-1;i>=0;i--){
             if(tiles[i]&&tiles[i].length>0){
@@ -99,15 +118,19 @@
             }
           }
 
-          document.getElementById("output").textContent=`Tiles({\n${
+          document.getElementById("output").textContent=
+            entities.filter(e=>e.w!=0&&e.h!=0).map(e=>e.toCode()).join("\n")+
+            `\n\nTiles({\n${
             Object.entries(charPalette).map(entry=>`    ["${entry[1]}"]: (${
               entry[0].split(":")[1]},"${entry[0].split(":")[0]}")`).join(",\n")+"\n"
           }},"""\n${tileMap}""")`;
         }
 
+        //--
+
         const paletteImages = {};
         let currPalette;
-        let currTile;
+        let currTile=[0,0];
         const paletteHolder = document.getElementById("tileList");
         const tileHolder = document.getElementById("currTiles");
         function getImgButton(src,x,y,onClick){
@@ -126,6 +149,7 @@
             for(let y=0;y<6;y++){
               for(let x=0;x<8;x++){
                 tileHolder.appendChild(getImgButton(name, x, y, ()=>{
+                  currPalette=name;
                   currTile=[x,y];
                 }));
               }
@@ -135,15 +159,6 @@
         function preload() {
           addPalette("test");
           addPalette("test2");
-
-          currPalette="test";
-          currTile=[0,0];
-        }
-
-        function setup() {
-          createCanvas(400, 400).elt.addEventListener("contextmenu",e=>e.preventDefault())
-          noStroke();
-          noSmooth();
         }
 
         const tiles=[];
@@ -157,6 +172,14 @@
           if(tiles[y].length==0) delete tiles[y];
         }
 
+        //--
+
+        function setup() {
+          createCanvas(400, 400).elt.addEventListener("contextmenu",e=>e.preventDefault())
+          noStroke();
+          noSmooth();
+        }
+
         function getColor(str){ 
           let bigint = parseInt(str.slice(1), 16);
           return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255]; 
@@ -167,17 +190,16 @@
         })
         function draw() {
           background.apply(null,bgColor);
-          /*
           for(const entity of entities) entity.render();
 
           if(currEntity){
-            currEntity.w=mouseX-currEntity.x;
-            currEntity.h=mouseY-currEntity.y;
+            currEntity.w=Math.round(mouseX/4-currEntity.x);
+            currEntity.h=Math.round(mouseY/4-currEntity.y);
             currEntity.render();
           }
-          */
 
-          if(mouseIsPressed) (mouseButton=="right"?removeTile:placeTile)(Math.floor(mouseX/16),Math.floor(mouseY/16));
+          if(mouseIsPressed&&currPalette&&currTile)
+            (mouseButton=="right"?removeTile:placeTile)(Math.floor(mouseX/16),Math.floor(mouseY/16));
           for(let y=0;y<tiles.length;y++){
             if(!tiles[y]) continue;
             for(let x=0;x<tiles[y].length;x++)
