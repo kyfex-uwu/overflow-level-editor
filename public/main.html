@@ -118,7 +118,7 @@
           }
           static get(x,y){ return new DiskEntity(x, y); }
           render(){
-            image(DiskEntity.img, (this.x-4)*SCALE+OFFSET[0],(this.y-4)*SCALE+OFFSET[1], 8*SCALE, 8*SCALE);
+            image(DiskEntity.img, (this.x-4)*SCALE+OFFSET[0],(this.y-4)*SCALE+OFFSET[1], 24*SCALE, 24*SCALE);
           }
           toCode(){ return `DiskEntity(${this.x},${this.y}).init(test_level)`; }
         }
