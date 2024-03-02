@@ -82,13 +82,13 @@
           static get(x,y){ return new SpawnPointEntity(x, y, 0, 0); }
           finalize(){
             super.finalize();
-            this.spawnpoint=[this.x+(this.w/2),this.y+(this.h/2)];
+            this.spawnpoint=[this.x+(this.w/2)-3,this.y+(this.h/2)-3];
           }
           render(){
             fill(100,255,200,100);
             super.render();
-            fill(0);
-            ellipse(this.spawnpoint[0]*SCALE-OFFSET[0],this.spawnpoint[1]*SCALE-OFFSET[1],5,5);
+            fill(0,100);
+            rect(this.spawnpoint[0]*SCALE-OFFSET[0],this.spawnpoint[1]*SCALE-OFFSET[1],6*SCALE,6*SCALE);
           }
           toCode(){ return `SpawnPointEntity(${this.x},${this.y},${this.w},${this.h
             },(${this.spawnpoint[0]},${this.spawnpoint[1]})).init(test_level)`; }
