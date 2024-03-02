@@ -118,7 +118,7 @@
           }
           static get(x,y){ return new DiskEntity(x, y); }
           render(){
-            image(DiskEntity.img, (this.x-4)*SCALE+OFFSET[0],(this.y-4)*SCALE+OFFSET[1], 24*SCALE, 24*SCALE);
+            image(DiskEntity.img, (this.x-4)*SCALE-OFFSET[0],(this.y-4)*SCALE-OFFSET[1], 24*SCALE, 24*SCALE);
           }
           toCode(){ return `DiskEntity(${this.x},${this.y}).init(test_level)`; }
         }
@@ -130,7 +130,7 @@
           }
           static get(x,y){ return new SpikeEntity(x, y); }
           render(){
-            image(SpikeEntity.img, this.x*SCALE+OFFSET[0],this.y*SCALE+OFFSET[1], 8*SCALE, 8*SCALE,
+            image(SpikeEntity.img, this.x*SCALE-OFFSET[0],this.y*SCALE-OFFSET[1], 8*SCALE, 8*SCALE,
               (this.dir=="up"||this.dir=="right")?0:8,(this.dir=="up"||this.dir=="left")?0:8,8,8);
           }
           click(){
@@ -150,6 +150,8 @@
         let currEntity;
         let selectedEntity;
         function mousePressed(){
+          if(mouseX<0||mouseY<0||mouseX>1024||mouseY>576) return;
+
           selectedEntity=undefined;
           if(currPalette) return;
 
@@ -169,6 +171,8 @@
           }
         }
         function mouseReleased(){
+          if(mouseX<0||mouseY<0||mouseX>1024||mouseY>576) return;
+          
           if(currPalette) return;
 
           if(currEntity){
