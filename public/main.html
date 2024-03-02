@@ -59,6 +59,12 @@
             rect(this.x*SCALE-OFFSET[0],this.y*SCALE-OFFSET[1],this.w*SCALE,this.h*SCALE);
           }
 
+          click(){}
+          drag(xChange,yChange){
+            this.x+=xChange;
+            this.y+=yChange;
+          }
+
           toCode(){ return ""; }
         }
         class GroundEntity extends Entity{
@@ -95,9 +101,11 @@
         class NonResizableEntity extends Entity{
           constructor(x,y, w, h){
             super(x,y,w, h);
+            this._w=w;
+            this._h=h;
           }
-          get w(){ return this.w; }
-          get h(){ return this.h; }
+          get w(){ return this._w; }
+          get h(){ return this._h; }
           set w(_){}
           set h(_){}
         }
@@ -108,18 +116,40 @@
           }
           static get(x,y){ return new SpikeEntity(x, y); }
           render(){
-            image(SpikeEntity.img, this.x*SCALE+OFFSET[0],this.y*SCALE+OFFSET[1]);
+            image(SpikeEntity.img, this.x*SCALE+OFFSET[0],this.y*SCALE+OFFSET[1], 8*SCALE, 8*SCALE,
+              (this.dir=="up"||this.dir=="right")?0:8,(this.dir=="up"||this.dir=="left")?0:8,8,8);
+          }
+          click(){
+            this.dir={
+              up:"left",
+              left:"down",
+              down:"right",
+              right:"up"
+            }[this.dir];
           }
         }
 
         const entities=[];
         let entityType=GroundEntity;
         let currEntity;
+        let selectedEntity;
         function mousePressed(){
+          selectedEntity=undefined;
           if(currPalette) return;
 
           if(mouseButton=="left"){
-            currEntity = entityType.get(Math.round((mouseX+OFFSET[0])/SCALE), Math.round((mouseY+OFFSET[1])/SCALE));
+            let mx=(mouseX+OFFSET[0])/SCALE;
+            let my=(mouseY+OFFSET[1])/SCALE;
+            for(const entity of entities){
+              if(entity.x<=mx&&mx<=entity.x+entity.w&&
+                entity.y<=my&&my<=entity.y+entity.h){
+                entity.click();
+                selectedEntity = entity;
+                break;
+              }
+            }
+            if(entityType&&!selectedEntity)
+              currEntity = entityType.get(Math.round((mouseX+OFFSET[0])/SCALE), Math.round((mouseY+OFFSET[1])/SCALE));
           }
         }
         function mouseReleased(){
@@ -135,7 +165,8 @@
         //Entity Types
         const entityTypes=[
           ["background-color:brown;","G", GroundEntity],
-          ["background-color:rgba(100,255,200,100);","S", SpawnPointEntity]
+          ["background-color:rgba(100,255,200,100);","S", SpawnPointEntity],
+          ["background-color:#f00;color:white;","S", SpikeEntity]
         ];
 
         function getTextButton(style,contents,onClick){
@@ -149,11 +180,13 @@
         document.getElementById("entity-button").addEventListener("click",()=>{
           currPalette=undefined;
           tileHolder.replaceChildren();
+          tileHolder.appendChild(getTextButton("background-color:white;","",()=>{
+            entityType=undefined;
+          }));
           for(const type of entityTypes){
-            let button = getTextButton(type[0],type[1], ()=>{
+            tileHolder.appendChild(getTextButton(type[0],type[1], ()=>{
               entityType=type[2];
-            });
-            tileHolder.appendChild(button);
+            }));
           }
         })
 
@@ -300,6 +333,10 @@
               if(tiles[y][x]) image(paletteImages[tiles[y][x].palette], 
                 x*SCALE*8-OFFSET[0],y*SCALE*8-OFFSET[1], SCALE*8, SCALE*8,
                 tiles[y][x].tile[0]*8, tiles[y][x].tile[1]*8, 8, 8);
+          }
+
+          if(mouseIsPressed&&selectedEntity){
+            selectedEntity.drag((mouseX-pmouseX)/SCALE,(mouseY-pmouseY)/SCALE);            
           }
 
           fill(0);
