@@ -45,6 +45,17 @@
             this.w=w;
             this.h=h;
           }
+          static get(x,y){ return new Entity(x, y, 0, 0); }
+          finalize(){
+            if(currEntity.w<0){
+              currEntity.x+=currEntity.w;
+              currEntity.w*=-1;
+            }
+            if(currEntity.h<0){
+              currEntity.y+=currEntity.h;
+              currEntity.h*=-1;
+            }
+          }
           render(){
             rect(this.x*SCALE-OFFSET[0],this.y*SCALE-OFFSET[1],this.w*SCALE,this.h*SCALE);
           }
@@ -55,6 +66,7 @@
           constructor(x,y,w,h){
             super(x,y,w,h);
           }
+          static get(x,y){ return new GroundEntity(x, y, 0, 0); }
           render(){
             fill(50,50,70);
             super.render();
@@ -62,35 +74,67 @@
 
           toCode(){ return `SolidEntity(${this.x},${this.y},${this.w},${this.h}).init(test_level)`; }
         }
+        class SpawnPointEntity extends Entity{
+          constructor(x,y,w,h){
+            super(x,y,w,h);
+            this.spawnpoint = [x,y];
+          }
+          static get(x,y){ return new SpawnPointEntity(x, y, 0, 0); }
+          finalize(){
+            super.finalize();
+            this.spawnpoint=[this.x+(this.w/2),this.y+(this.h/2)];
+          }
+          render(){
+            fill(100,255,200,100);
+            super.render();
+            fill(0);
+            ellipse(this.spawnpoint[0]*SCALE-OFFSET[0],this.spawnpoint[1]*SCALE-OFFSET[1],5,5);
+          }
+          toCode(){ return `SpawnPointEntity(${this.x},${this.y},${this.w},${this.h
+            },(${this.spawnpoint[0]},${this.spawnpoint[1]})).init(test_level)`; }
+        }
 
         const entities=[];
+        let entityType=GroundEntity;
         let currEntity;
         function mousePressed(){
           if(currPalette) return;
 
           if(mouseButton=="left"){
-            currEntity = new GroundEntity(Math.round((mouseX+OFFSET[0])/SCALE), Math.round((mouseY+OFFSET[1])/SCALE));
+            currEntity = entityType.get(Math.round((mouseX+OFFSET[0])/SCALE), Math.round((mouseY+OFFSET[1])/SCALE));
           }
         }
         function mouseReleased(){
           if(currPalette) return;
 
           if(currEntity){
-            if(currEntity.w<0){
-              currEntity.x+=currEntity.w;
-              currEntity.w*=-1;
-            }
-            if(currEntity.h<0){
-              currEntity.y+=currEntity.h;
-              currEntity.h*=-1;
-            }
+            currEntity.finalize();
             entities.push(currEntity);
             currEntity=undefined;
           }
         }
 
+        const entityTypes=[
+          ["background-color:brown;","G", GroundEntity],
+          ["background-color:rgba(100,255,200,100);","S", SpawnPointEntity]
+        ];
+        function getTextButton(style,contents,onClick){
+          const img = document.createElement("span");
+          img.style=style;
+          img.innerHTML=contents;
+          img.classList.add("subimage");
+          img.addEventListener("click",onClick);
+          return img;
+        }
         document.getElementById("entity-button").addEventListener("click",()=>{
           currPalette=undefined;
+          tileHolder.replaceChildren();
+          for(const type of entityTypes){
+            let button = getTextButton(type[0],type[1], ()=>{
+              entityType=type[2];
+            });
+            tileHolder.appendChild(button);
+          }
         })
 
         //--
@@ -111,9 +155,10 @@
           }
 
           let charPalette={};
-          let currKey=65;//65-90, 48-57, 97-122
+          let currKey=65;
           let tileMap="";
           for(let y=0;y<tiles.length;y++){
+            if(tiles[y]==undefined) tiles[y]=undefined;
             if(y>0) tileMap+="\n";
             if(tiles[y]){
               for(let x=0;x<tiles[y].length;x++){
@@ -130,7 +175,7 @@
           }
 
           document.getElementById("output").textContent=
-            `test_level = Level(${Math.max.apply(null,tiles.map(r=>r.length))},${tiles.length})`+
+            `test_level = Level(${Math.max(Math.max.apply(null,tiles.map(r=>r?r.length:0)),0)},${tiles.length})\n\n`+
             entities.filter(e=>e.w!=0&&e.h!=0).map(e=>e.toCode()).join("\n")+
             `\n\nTiles({\n${
             Object.entries(charPalette).map(entry=>`    "${entry[1]}": (${
