@@ -59,7 +59,9 @@
             rect(this.x*SCALE-OFFSET[0],this.y*SCALE-OFFSET[1],this.w*SCALE,this.h*SCALE);
           }
 
-          click(){}
+          click(){
+            if(mouseButton=="right") entities.splice(entities.indexOf(this));
+          }
           drag(xChange,yChange){
             this.x+=xChange;
             this.y+=yChange;
@@ -120,6 +122,7 @@
               (this.dir=="up"||this.dir=="right")?0:8,(this.dir=="up"||this.dir=="left")?0:8,8,8);
           }
           click(){
+            super.click();
             this.dir={
               up:"left",
               left:"down",
@@ -137,17 +140,17 @@
           selectedEntity=undefined;
           if(currPalette) return;
 
-          if(mouseButton=="left"){
-            let mx=(mouseX+OFFSET[0])/SCALE;
-            let my=(mouseY+OFFSET[1])/SCALE;
-            for(const entity of entities){
-              if(entity.x<=mx&&mx<=entity.x+entity.w&&
-                entity.y<=my&&my<=entity.y+entity.h){
-                entity.click();
-                selectedEntity = entity;
-                break;
-              }
+          let mx=(mouseX+OFFSET[0])/SCALE;
+          let my=(mouseY+OFFSET[1])/SCALE;
+          for(const entity of entities){
+            if(entity.x<=mx&&mx<=entity.x+entity.w&&
+              entity.y<=my&&my<=entity.y+entity.h){
+              entity.click();
+              selectedEntity = entity;
+              break;
             }
+          }
+          if(mouseButton=="left"){
             if(entityType&&!selectedEntity)
               currEntity = entityType.get(Math.round((mouseX+OFFSET[0])/SCALE), Math.round((mouseY+OFFSET[1])/SCALE));
           }
@@ -301,7 +304,10 @@
         //--
 
         function setup() {
-          createCanvas(1024, 576).elt.addEventListener("contextmenu",e=>e.preventDefault())
+          createCanvas(1024, 576).elt.addEventListener("contextmenu",e=>{
+            mousePressed();
+            e.preventDefault();
+          })
           noStroke();
           noSmooth();
         }
