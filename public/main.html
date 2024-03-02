@@ -114,10 +114,12 @@
           }
         }
 
+        //Entity Types
         const entityTypes=[
           ["background-color:brown;","G", GroundEntity],
           ["background-color:rgba(100,255,200,100);","S", SpawnPointEntity]
         ];
+
         function getTextButton(style,contents,onClick){
           const img = document.createElement("span");
           img.style=style;
@@ -213,6 +215,8 @@
             }
           }));
         }
+
+        //Pallettes
         function preload() {
           addPalette("test");
           addPalette("test2");
