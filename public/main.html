@@ -111,6 +111,18 @@
           set w(_){}
           set h(_){}
         }
+
+        class DiskEntity extends NonResizableEntity{
+          constructor(x,y){
+            super(x,y,16,16);
+          }
+          static get(x,y){ return new DiskEntity(x, y); }
+          render(){
+            image(DiskEntity.img, (this.x-4)*SCALE+OFFSET[0],(this.y-4)*SCALE+OFFSET[1], 8*SCALE, 8*SCALE);
+          }
+          toCode(){ return `DiskEntity(${this.x},${this.y}).init(test_level)`; }
+        }
+
         class SpikeEntity extends NonResizableEntity{
           constructor(x,y){
             super(x,y,8,8);
@@ -130,6 +142,7 @@
               right:"up"
             }[this.dir];
           }
+          toCode(){ return `SpikeEntity(${this.x},${this.y},"${this.dir}").init(test_level)`; }
         }
 
         const entities=[];
@@ -169,7 +182,8 @@
         const entityTypes=[
           ["background-color:brown;","G", GroundEntity],
           ["background-color:rgba(100,255,200,100);","S", SpawnPointEntity],
-          ["background-color:#f00;color:white;","S", SpikeEntity]
+          ["background-color:#f00;color:white;","S", SpikeEntity],
+          ["background-color:green;","D", DiskEntity]
         ];
 
         function getTextButton(style,contents,onClick){
@@ -278,6 +292,7 @@
           addPalette("blueTiles");
 
           SpikeEntity.img = loadImage("/spikes.png");
+          DiskEntity.img  = loadImage("/disk.png");
         }
 
         const tiles=[];
