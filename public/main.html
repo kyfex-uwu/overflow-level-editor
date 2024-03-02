@@ -20,6 +20,8 @@
       <button onclick="exportCode()">Export</button>
       <div id="tileList"></div>
       <div id="currTiles" style="width:calc((5 * 2px + 32px) * 8)"></div>
+      <input type="color" id="background-color" value="#555555" /><br>
+      <pre id="output" style="background-color:white; color:black; font-family:monospace;"></pre>
     </div>
 
     <script>
@@ -70,6 +72,37 @@
 
         function exportCode(){
           console.log(entities.filter(e=>e.w!=0&&e.h!=0).map(e=>e.toCode()).join("\n"));
+
+          for(let i=tiles.length-1;i>=0;i--){
+            if(tiles[i]&&tiles[i].length>0){
+              tiles.length=i+1;
+              break;
+            }
+          }
+
+          let charPalette={};
+          let currKey=65;//65-90, 48-57, 97-122
+          let tileMap="";
+          for(let y=0;y<tiles.length;y++){
+            if(y>0) tileMap+="\n";
+            if(tiles[y]){
+              for(let x=0;x<tiles[y].length;x++){
+                if(tiles[y][x]&&charPalette[tiles[y][x].identifier]==undefined){
+                  charPalette[tiles[y][x].identifier]=String.fromCharCode(currKey);
+                  currKey++;
+                  if(currKey==91) currKey=48;
+                  if(currKey==58) currKey=97;
+                  if(currKey==123) console.log("Too many different cells");
+                }
+                tileMap+=tiles[y][x]?charPalette[tiles[y][x].identifier]:".";
+              }
+            }
+          }
+
+          document.getElementById("output").textContent=`Tiles({\n${
+            Object.entries(charPalette).map(entry=>`    ["${entry[1]}"]: (${
+              entry[0].split(":")[1]},"${entry[0].split(":")[0]}")`).join(",\n")+"\n"
+          }},"""\n${tileMap}""")`;
         }
 
         const paletteImages = {};
@@ -101,6 +134,7 @@
         }
         function preload() {
           addPalette("test");
+          addPalette("test2");
 
           currPalette="test";
           currTile=[0,0];
@@ -115,15 +149,24 @@
         const tiles=[];
         function placeTile(x,y){
           if(!tiles[y]) tiles[y]=[];
-          tiles[y][x]={palette:currPalette,tile:currTile};
+          tiles[y][x]={palette:currPalette, tile:currTile, identifier:`${currPalette}:${currTile[0]},${currTile[1]}`};
         }
         function removeTile(x,y){
           if(!tiles[y]) return;
           delete tiles[y][x];
+          if(tiles[y].length==0) delete tiles[y];
         }
 
+        function getColor(str){ 
+          let bigint = parseInt(str.slice(1), 16);
+          return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255]; 
+        }
+        let bgColor=getColor(document.getElementById("background-color").value);
+        document.getElementById("background-color").addEventListener("input",e=>{
+          bgColor = getColor(e.srcElement.value);
+        })
         function draw() {
-          background(50);
+          background.apply(null,bgColor);
           /*
           for(const entity of entities) entity.render();
 
