@@ -189,6 +189,7 @@
             if(super.click()) return true;
             if(keys.Control){
               this.img=prompt("Image path (resources/display/[name].png)");
+              keys.Control=false;
               return true;
             }
           }
