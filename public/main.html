@@ -78,7 +78,10 @@
           }
 
           click(){
-            if(mouseButton=="right") entities.splice(entities.indexOf(this));
+            if(mouseButton=="right"){
+              entities.splice(entities.indexOf(this));
+              return true;
+            }
           }
           drag(xChange,yChange){
             this.x+=xChange;
@@ -158,13 +161,14 @@
               (this.dir=="up"||this.dir=="left")?0:8,(this.dir=="up"||this.dir=="right")?0:8,8,8);
           }
           click(){
-            super.click();
+            if(super.click()) return true;
             this.dir={
               up:"left",
               left:"down",
               down:"right",
               right:"up"
             }[this.dir];
+            return true;
           }
           toCode(){ return `spike:${this.x},${this.y},${this.dir}`; }
         }
@@ -182,7 +186,9 @@
             text(this.img, this.x*SCALE-OFFSET[0],this.y*SCALE-OFFSET[1]);
           }
           click(){
+            if(super.click()) return true;
             this.img=prompt("Image path (resources/display/[name].png)");
+            return true;
           }
           toCode(){ return `display:${this.x},${this.y},${this.img}`; }
         }
