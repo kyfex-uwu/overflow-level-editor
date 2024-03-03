@@ -461,9 +461,21 @@
             currEntity.render();
           }
 
-          if(mouseIn()&&mouseIsPressed&&currPalette&&currTile)
-            (mouseButton=="right"?removeTile:placeTile)(
-              Math.floor((mouseX+OFFSET[0])/SCALE/8),Math.floor((mouseY+OFFSET[1])/SCALE/8));
+          if(mouseIn()&&mouseIsPressed&&currPalette&&currTile){
+            ({
+              right:removeTile,
+              left:placeTile,
+              center:(x,y)=>{
+                if(!tiles[y]||!tiles[y][x]){
+                  currPalette = undefined;
+                  currTile=[0,0];
+                }else{
+                  currPalette = tiles[y][x].palette;
+                  currTile = tiles[y][x].tile;
+                }
+              }
+            })[mouseButton](Math.floor((mouseX+OFFSET[0])/SCALE/8),Math.floor((mouseY+OFFSET[1])/SCALE/8));
+          }
           for(let y=0;y<tiles.length;y++){
             if(!tiles[y]) continue;
             for(let x=0;x<tiles[y].length;x++)
