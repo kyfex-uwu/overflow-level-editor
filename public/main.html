@@ -31,7 +31,11 @@
           font-size: 30px;" id="entity-button">E</span></div>
       <div id="currTiles" style="width:calc((5 * 2px + 32px) * 8)"></div>
       <input type="color" id="background-color" value="#555555" /><br>
-      <pre id="output" style="background-color:white; color:black; font-family:monospace;"></pre>
+      <pre id="output" style="
+          background-color:white; 
+          color:black; 
+          font-family:monospace;
+          width:calc((5 * 2px + 32px) * 8)"></pre>
     </div>
 
     <script>
@@ -54,6 +58,10 @@
               currEntity.y+=currEntity.h;
               currEntity.h*=-1;
             }
+            this.x=Math.round(this.x);
+            this.y=Math.round(this.y);
+            this.w=Math.round(this.w);
+            this.h=Math.round(this.h);
           }
           render(){
             rect(this.x*SCALE-OFFSET[0],this.y*SCALE-OFFSET[1],this.w*SCALE,this.h*SCALE);
@@ -79,7 +87,7 @@
             super.render();
           }
 
-          toCode(){ return `SolidEntity(${this.x},${this.y},${this.w},${this.h}).init(test_level)`; }
+          toCode(){ return `solid:${this.x},${this.y},${this.w},${this.h}`; }
         }
         class SpawnPointEntity extends Entity{
           constructor(x,y,w,h){
@@ -89,7 +97,7 @@
           static get(x,y){ return new SpawnPointEntity(x, y, 0, 0); }
           finalize(){
             super.finalize();
-            this.spawnpoint=[this.x+(this.w/2)-3,this.y+(this.h/2)-3];
+            this.spawnpoint=[Math.round(this.x+(this.w/2)-3),Math.round(this.y+(this.h/2)-3)];
           }
           render(){
             fill(100,255,200,100);
@@ -97,8 +105,10 @@
             fill(0,100);
             rect(this.spawnpoint[0]*SCALE-OFFSET[0],this.spawnpoint[1]*SCALE-OFFSET[1],6*SCALE,6*SCALE);
           }
-          toCode(){ return `SpawnPointEntity(${this.x},${this.y},${this.w},${this.h
-            },(${this.spawnpoint[0]},${this.spawnpoint[1]})).init(test_level)`; }
+          toCode(){ 
+            return `spawn:${this.x},${this.y},${this.w},${this.h
+              },${this.spawnpoint[0]},${this.spawnpoint[1]}`; 
+          }
         }
         class NonResizableEntity extends Entity{
           constructor(x,y, w, h){
@@ -120,7 +130,7 @@
           render(){
             image(DiskEntity.img, (this.x-4)*SCALE-OFFSET[0],(this.y-4)*SCALE-OFFSET[1], 24*SCALE, 24*SCALE);
           }
-          toCode(){ return `DiskEntity(${this.x},${this.y}).init(test_level)`; }
+          toCode(){ return `disk:${this.x},${this.y}`; }
         }
 
         class SpikeEntity extends NonResizableEntity{
@@ -131,7 +141,7 @@
           static get(x,y){ return new SpikeEntity(x, y); }
           render(){
             image(SpikeEntity.img, this.x*SCALE-OFFSET[0],this.y*SCALE-OFFSET[1], 8*SCALE, 8*SCALE,
-              (this.dir=="up"||this.dir=="right")?0:8,(this.dir=="up"||this.dir=="left")?0:8,8,8);
+              (this.dir=="up"||this.dir=="left")?0:8,(this.dir=="up"||this.dir=="right")?0:8,8,8);
           }
           click(){
             super.click();
@@ -142,7 +152,7 @@
               right:"up"
             }[this.dir];
           }
-          toCode(){ return `SpikeEntity(${this.x},${this.y},"${this.dir}").init(test_level)`; }
+          toCode(){ return `spike:${this.x},${this.y},${this.dir}`; }
         }
 
         const entities=[];
@@ -172,7 +182,7 @@
         }
         function mouseReleased(){
           if(mouseX<0||mouseY<0||mouseX>1024||mouseY>576) return;
-          
+
           if(currPalette) return;
 
           if(currEntity){
@@ -213,35 +223,45 @@
 
         //--
 
+        const outputElement = document.getElementById("output")
+        outputElement.addEventListener("click",()=>{
+          navigator.clipboard.writeText(outputElement.textContent);
+          outputElement.style["background-color"]=`rgb(${150+Math.random()*100
+            },${150+Math.random()*100},${150+Math.random()*100})`;
+        });
         function exportCode(){
-          let charPalette={};
+          let colors={};
           let currKey=65;
-          let tileMap="";
+          let tileMap=[];
           for(let y=0;y<tiles.length;y++){
             if(tiles[y]==undefined) tiles[y]=undefined;
-            if(y>0) tileMap+="\n";
+            let toAdd="";
             if(tiles[y]){
               for(let x=0;x<tiles[y].length;x++){
-                if(tiles[y][x]&&charPalette[tiles[y][x].identifier]==undefined){
-                  charPalette[tiles[y][x].identifier]=String.fromCharCode(currKey);
-                  currKey++;
+                let thisTile = tiles[y][x];
+                if(thisTile){
+                  if(colors[thisTile.palette]==undefined) colors[thisTile.palette]={};
+                  if(colors[thisTile.palette][`${thisTile.tile[0]}${thisTile.tile[1]}`]==undefined){
+                    colors[thisTile.palette][`${thisTile.tile[0]}${thisTile.tile[1]}`]=String.fromCharCode(currKey);
+                    currKey++;
+                  }
                   if(currKey==91) currKey=48;
                   if(currKey==58) currKey=97;
-                  if(currKey==123) console.log("Too many different cells");
+                  if(currKey==123) console.log("Too many different cells, kyfex needs to fix this");
                 }
-                tileMap+=tiles[y][x]?charPalette[tiles[y][x].identifier]:".";
+                toAdd+=thisTile?colors[thisTile.palette][`${thisTile.tile[0]}${thisTile.tile[1]}`]:".";
               }
             }
+            tileMap.push(toAdd);
           }
+          console.log(tileMap, colors)
 
-          document.getElementById("output").textContent=
-            `test_level = Level(${Math.max(Math.max.apply(null,tiles.map(r=>r?r.length:0)),0)},${tiles.length})\n`+
-            `PlayerEntity().init(test_level)\n\n`+
-            entities.filter(e=>e.w!=0&&e.h!=0).map(e=>e.toCode()).join("\n")+
-            `\n\nTiles({\n${
-            Object.entries(charPalette).map(entry=>`    "${entry[1]}": (${
-              entry[0].split(":")[1]},"${entry[0].split(":")[0]}")`).join(",\n")+"\n"
-          }},"""\n${tileMap}""").init(test_level)`;
+          outputElement.textContent=
+            /*metadata*/`${Math.max(Math.max.apply(null,tiles.map(r=>r?r.length:0)),0)};${tiles.length}\n`+
+            /*entities*/`${entities.map(e=>e.toCode()).join(";")}\n`+
+            /*palette*/`${Object.entries(colors).map(e=>e[0]+":"+Object.entries(e[1])
+              .map(e2=>e2[1]+e2[0]).join("")).join(";")}\n`+
+            /*tiles*/`${tileMap.join(";")}`;
         }
 
         //--
@@ -288,14 +308,34 @@
         const tiles=[];
         function placeTile(x,y){
           if(!tiles[y]) tiles[y]=[];
-          tiles[y][x]={palette:currPalette, tile:currTile, identifier:`${currPalette}:${currTile[0]},${currTile[1]}`};
+          tiles[y][x]={palette:currPalette, tile:currTile};
         }
         function removeTile(x,y){
-          if(!tiles[y]) return;
+          if(tiles[y]==undefined) return;
           delete tiles[y][x];
-          for(let i=tiles[y].length-1;i>=0;y--)
-            if(tiles[y][i]==undefined) tiles[y].length=i-1;
-          if(tiles[y].length<0) delete tiles[y];
+          let foundTile=false;
+          for(let i=tiles[y].length-1;i>=0;i--){
+            if(tiles[y][i]!=undefined){
+              tiles[y].length=i+1;
+              foundTile=true;
+              break;
+            }
+          }
+          if(tiles[y].length<0||!foundTile){
+            delete tiles[y];
+            if(y==tiles.length-1){
+              let foundRow=false;
+              for(let i=tiles.length-1;i>=0;i--){
+                if(tiles[i]!=undefined){
+                  tiles.length=i+1;
+                  foundRow=true;
+                  break;
+                }
+              }
+              if(!foundRow)
+                tiles.length=0;
+            }
+          }
         }
 
         //--
