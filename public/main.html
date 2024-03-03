@@ -187,8 +187,10 @@
           }
           click(){
             if(super.click()) return true;
-            this.img=prompt("Image path (resources/display/[name].png)");
-            return true;
+            if(keys.Control){
+              this.img=prompt("Image path (resources/display/[name].png)");
+              return true;
+            }
           }
           toCode(){ return `display:${this.x},${this.y},${this.img}`; }
         }
