@@ -79,7 +79,7 @@
 
           click(){
             if(mouseButton=="right"){
-              entities.splice(entities.indexOf(this));
+              entities.splice(entities.indexOf(this),1);
               return true;
             }
           }
@@ -157,7 +157,7 @@
           static get(x,y){ return new SpikeEntity(x, y, "up"); }
           render(){
             super.render();
-            image(SpikeEntity.img, this.x*SCALE-OFFSET[0],this.y*SCALE-OFFSET[1], 8*SCALE, 8*SCALE,
+            image(SpikeEntity.img, (this.x-2)*SCALE-OFFSET[0],(this.y-2)*SCALE-OFFSET[1], 8*SCALE, 8*SCALE,
               (this.dir=="up"||this.dir=="left")?0:8,(this.dir=="up"||this.dir=="right")?0:8,8,8);
           }
           click(){
@@ -435,7 +435,7 @@
           createCanvas(22*SCALE*8, 12.375*SCALE*8).elt.addEventListener("contextmenu",e=>{
             mousePressed();
             e.preventDefault();
-          })
+          });
           noStroke();
           noSmooth();
         }
