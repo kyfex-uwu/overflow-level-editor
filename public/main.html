@@ -199,8 +199,11 @@
         let entityType=undefined;
         let currEntity;
         let selectedEntity;
+        function mouseIn(){
+          return !(mouseX<0||mouseY<0||mouseX>1024||mouseY>576);
+        }
         function mousePressed(){
-          if(mouseX<0||mouseY<0||mouseX>1024||mouseY>576) return;
+          if(!mouseIn()) return;
 
           selectedEntity=undefined;
           if(currPalette) return;
@@ -458,7 +461,7 @@
             currEntity.render();
           }
 
-          if(mouseIsPressed&&currPalette&&currTile)
+          if(mouseIn()&&mouseIsPressed&&currPalette&&currTile)
             (mouseButton=="right"?removeTile:placeTile)(
               Math.floor((mouseX+OFFSET[0])/SCALE/8),Math.floor((mouseY+OFFSET[1])/SCALE/8));
           for(let y=0;y<tiles.length;y++){
@@ -469,7 +472,7 @@
                 tiles[y][x].tile[0]*8, tiles[y][x].tile[1]*8, 8, 8);
           }
 
-          if(mouseIsPressed&&selectedEntity){
+          if(mouseIn()&&mouseIsPressed&&selectedEntity){
             selectedEntity.drag((mouseX-pmouseX)/SCALE,(mouseY-pmouseY)/SCALE);            
           }
 
