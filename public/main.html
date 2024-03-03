@@ -48,6 +48,8 @@
             this.y=y;
             this.w=w;
             this.h=h;
+
+            this._dragging=[false,false];
           }
           finalize(){
             if(currEntity.w<0){
@@ -64,7 +66,14 @@
             this.h=Math.round(this.h);
           }
           render(){
-            rect(this.x*SCALE-OFFSET[0],this.y*SCALE-OFFSET[1],this.w*SCALE,this.h*SCALE);
+            if(!this._dragging[0]&&this._dragging[1]){
+              this.x=Math.round(this.x);
+              this.y=Math.round(this.y);
+              this.w=Math.round(this.w);
+              this.h=Math.round(this.h);
+            }
+            this._dragging[1]=this._dragging[0];
+            this._dragging[0]=false;
           }
 
           click(){
@@ -73,6 +82,7 @@
           drag(xChange,yChange){
             this.x+=xChange;
             this.y+=yChange;
+            this._dragging[0]=true;
           }
 
           toCode(){ return ""; }
@@ -84,6 +94,7 @@
           static get(x,y){ return new GroundEntity(x, y, 0, 0); }
           render(){
             fill(50,50,70);
+            rect(this.x*SCALE-OFFSET[0],this.y*SCALE-OFFSET[1],this.w*SCALE,this.h*SCALE);
             super.render();
           }
 
@@ -101,6 +112,7 @@
           }
           render(){
             fill(100,255,200,100);
+            rect(this.x*SCALE-OFFSET[0],this.y*SCALE-OFFSET[1],this.w*SCALE,this.h*SCALE);
             super.render();
             fill(0,100);
             rect(this.spawnpoint[0]*SCALE-OFFSET[0],this.spawnpoint[1]*SCALE-OFFSET[1],6*SCALE,6*SCALE);
@@ -128,6 +140,7 @@
           }
           static get(x,y){ return new DiskEntity(x, y); }
           render(){
+            super.render();
             image(DiskEntity.img, (this.x-4)*SCALE-OFFSET[0],(this.y-4)*SCALE-OFFSET[1], 24*SCALE, 24*SCALE);
           }
           toCode(){ return `disk:${this.x},${this.y}`; }
@@ -140,6 +153,7 @@
           }
           static get(x,y){ return new SpikeEntity(x, y); }
           render(){
+            super.render();
             image(SpikeEntity.img, this.x*SCALE-OFFSET[0],this.y*SCALE-OFFSET[1], 8*SCALE, 8*SCALE,
               (this.dir=="up"||this.dir=="left")?0:8,(this.dir=="up"||this.dir=="right")?0:8,8,8);
           }
@@ -254,7 +268,6 @@
             }
             tileMap.push(toAdd);
           }
-          console.log(tileMap, colors)
 
           outputElement.textContent=
             /*metadata*/`${Math.max(Math.max.apply(null,tiles.map(r=>r?r.length:0)),0)};${tiles.length}\n`+
