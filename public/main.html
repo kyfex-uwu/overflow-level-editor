@@ -286,8 +286,8 @@
                 let thisTile = tiles[y][x];
                 if(thisTile){
                   if(colors[thisTile.palette]==undefined) colors[thisTile.palette]={};
-                  if(colors[thisTile.palette][`${thisTile.tile[0]}${thisTile.tile[1]}`]==undefined){
-                    colors[thisTile.palette][`${thisTile.tile[0]}${thisTile.tile[1]}`]=String.fromCharCode(currKey);
+                  if(colors[thisTile.palette][`${thisTile.tile[0].toString(36)}${thisTile.tile[1].toString(36)}`]==undefined){
+                    colors[thisTile.palette][`${thisTile.tile[0].toString(36)}${thisTile.tile[1].toString(36)}`]=String.fromCharCode(currKey);
                     currKey++;
                   }
                   if(currKey==91) currKey=48;
@@ -364,13 +364,13 @@
           img.addEventListener("click",onClick);
           return img;
         }
-        function addPalette(name){
+        function addPalette(name, w, h){
           paletteImages[name]=loadImage(`/${name}.png`);
           paletteHolder.appendChild(getImgButton(name, 0, 0, ()=>{
             currPalette=name;
             tileHolder.replaceChildren();
-            for(let y=0;y<6;y++){
-              for(let x=0;x<8;x++){
+            for(let y=0;y<h;y++){
+              for(let x=0;x<w;x++){
                 tileHolder.appendChild(getImgButton(name, x, y, ()=>{
                   currPalette=name;
                   currTile=[x,y];
@@ -382,9 +382,9 @@
 
         //Pallettes
         function preload() {
-          addPalette("test");
-          addPalette("test2");
-          addPalette("blueTiles");
+          addPalette("test", 8, 6);
+          addPalette("test2", 8, 6);
+          addPalette("blueTiles", 8, 6);
 
           SpikeEntity.img = loadImage("/spikes.png");
           DiskEntity.img  = loadImage("/disk.png");
